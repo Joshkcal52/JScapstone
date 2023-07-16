@@ -1,10 +1,14 @@
-const email = "josh@devpipeline.com";
-const pass = "One2threesf@1";
+const email = "";
+const pass = "";
 
 const userData = {
   email: email,
   password: pass,
 };
+
+let firstName = [];
+
+let minNames = 0;
 
 async function auth() {
   try {
@@ -25,7 +29,6 @@ async function auth() {
 
 async function getAll() {
   let users = [];
-  let firstName = [];
 
   try {
     const getAuth = await auth();
@@ -40,22 +43,88 @@ async function getAll() {
 
   const getNames = () => {
     users.map((user) => {
-      firstName.push(user.first_name);
+      firstName.push(user.first_name + " " + user.last_name[0] + ".");
     });
+    console.log(firstName);
+
+    function randomGen() {
+      let winner = Math.floor(Math.random() * firstName.length);
+      let result = firstName[winner];
+
+      const blinkResult = () => {
+        let winnerResultLocation = document.getElementById("stupid");
+        winnerResultLocation.style.color =
+          winnerResultLocation.style.color === "rgb(34, 197, 94)"
+            ? "black"
+            : "rgb(34, 197, 94)";
+      };
+
+      let blinkInterval = setInterval(blinkResult, 500);
+
+      setTimeout(() => {
+        clearInterval(blinkInterval);
+        let winnerResultLocation = document.getElementById("stupid");
+        winnerResultLocation.style.color = "rgb(34, 197, 94)";
+      }, 3000);
+
+      let winnerResultLocation = document.getElementById("stupid");
+      winnerResultLocation.innerHTML = result;
+    }
+
+    const sleep = (milliseconds) => {
+      return new Promise((resolve) => setTimeout(resolve, milliseconds));
+    };
+
+    async function randomShuffle() {
+      let sleepTime = 80;
+      let randResult = document.getElementById("stupid");
+
+      randResult.style.color = "black";
+
+      for (let i = 0; i < 15; i++) {
+        let randName = Math.floor(Math.random() * firstName.length);
+        randResult.innerHTML = firstName[randName];
+        sleepTime = sleepTime * 1.05;
+        await sleep(sleepTime);
+      }
+
+      randomGen();
+    }
+
+    let pickMe = document.getElementById("randombtn");
+    pickMe.addEventListener("click", () => {
+      randomShuffle();
+    });
+    renderUsers(firstName);
   };
   getNames();
-  console.log(firstName);
+  minNames = firstName.length - 1;
+  console.log(minNames);
 
-  function renderUsers() {
+  function renderUsers(firstName) {
     const renderLocation = document.getElementById("students-container");
-    firstName.map((person) => {
+    renderLocation.innerHTML = "";
+
+    for (let i = 0; i < firstName.length; i++) {
+      const person = firstName[i];
+      const occurrences = countOccurrences(person);
+
       const studentContainer = document.createElement("div");
       studentContainer.classList.add("outerDiv");
+
+      const nameAmount = document.createElement("div");
+      nameAmount.classList.add("name-amount");
+
+      const nameContainer = document.createElement("div");
+      nameContainer.classList.add("name-container");
+
       const name = document.createTextNode(`${person}`);
+      const amount = document.createTextNode(`${occurrences}`);
 
-      // let btnMinus = document.createElement("button");
-
-      studentContainer.appendChild(name);
+      nameAmount.appendChild(amount);
+      nameContainer.appendChild(name);
+      studentContainer.appendChild(nameAmount);
+      studentContainer.appendChild(nameContainer);
       renderLocation.appendChild(studentContainer);
 
       const btnContainer = document.createElement("div");
@@ -64,31 +133,54 @@ async function getAll() {
       btnPlus.innerHTML = "+";
       btnPlus.classList.add("btnPlus");
       btnPlus.id = "plusBtn";
-      btnPlus.onclick = function () {
-        alert("Button Clicked!");
-      };
+      btnPlus.addEventListener("click", () => {
+        firstName.push(person);
+        renderUsers(firstName);
+      });
+
       btnContainer.appendChild(btnPlus);
       renderLocation.appendChild(btnContainer);
 
       let btnMinus = document.createElement("button");
       btnMinus.innerHTML = "-";
       btnMinus.classList.add("btnMinus");
-      btnMinus.id = "plusBtn";
-      btnMinus.onclick = function () {
-        alert("Button Clicked!");
-      };
+      btnMinus.id = "minusBtn";
+      btnMinus.addEventListener("click", createMinusButtonListener(person, i));
+
       btnContainer.appendChild(btnMinus);
       renderLocation.appendChild(btnContainer);
       studentContainer.appendChild(btnContainer);
-    });
+    }
   }
-  renderUsers();
+
+  function createMinusButtonListener(name, index) {
+    console.log(index);
+    return () => {
+      const firstOccurrenceIndex = firstName.findIndex(
+        (person) => person === name
+      );
+      if (firstOccurrenceIndex !== -1) {
+        let removedCount = 0;
+        let i = firstOccurrenceIndex + 1;
+        while (i < firstName.length) {
+          if (firstName[i] === name) {
+            firstName.splice(i, 1);
+            removedCount++;
+          } else {
+            i++;
+          }
+          if (removedCount >= 1) {
+            break;
+          }
+        }
+        renderUsers(firstName);
+      }
+    };
+  }
+
+  function countOccurrences(value) {
+    return firstName.filter((person) => person === value).length;
+  }
 }
 
 getAll();
-
-// const scrollableDiv = document.getElementById("scrollableDiv");
-// scrollableDiv.style.overflow = "scroll";
-// scrollableDiv.style.height = "100vh";
-
-// object.addEventListener("click", myScript);
